@@ -1,0 +1,25 @@
+<!doctype html> 
+<html> 
+<head> 
+<meta charset="utf-8" /> 
+<title>Two-Doc Checker</title> 
+<link rel="stylesheet" href="styles.css" /> 
+</head> 
+<body> 
+<div class="wrap"> 
+<h1>Two-Doc Checker</h1> 
+<p>Upload an <strong>Invoice</strong> and a <strong>Contract or PO</strong>.</p> 
+<label>Invoice: <input id="invoice" type="file" /></label> 
+<label>Contract/PO: <input id="governing" type="file" /></label> 
+<label class="inline"><input id="force" type="checkbox" /> Force discrepancy check</label> 
+<button id="compare" disabled>Compare</button> 
+<pre id="status"></pre> 
+<div id="results"></div> 
+<div id="exports" style="display:none;"> 
+<button id="export-json">Export JSON</button> 
+<button id="export-csv">Export CSV</button> 
+</div> 
+</div> 
+<script src="app.js"></script> 
+</body> 
+</html> 

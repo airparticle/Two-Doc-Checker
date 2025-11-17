@@ -1,0 +1,1 @@
+"Vendor: Acmecorp", "Customer: BigCo", "PO Number: 12345", and a total like "Total: $5,000".
