@@ -179,4 +179,5 @@ MIT
 
 ## Contributing
 
-Issues and PRs welcome!
+
+Issues and PRs welcome! eb1b0ffaad8242e483dbdc445215c551d9407edf
