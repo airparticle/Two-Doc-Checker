@@ -11,49 +11,172 @@ AI-powered invoice verification tool that compares invoices against contracts or
 - Export results as JSON or CSV
 - Simple web interface
 
-## Quick Start
+## Prerequisites
 
-### Prerequisites
-- Python 3.8+
-- OpenRouter API key ([get one here](https://openrouter.ai))
+Before installing, make sure you have:
+- **Python 3.8 or higher** ([Download here](https://www.python.org/downloads/))
+- **pip** (comes with Python)
+- **Git** ([Download here](https://git-scm.com/downloads))
+- **OpenRouter API key** (free - [get one here](https://openrouter.ai))
 
-### Installation
+## Installation
 
-1. **Clone and install**
+### Step 1: Clone the Repository
+
 ```bash
-git clone <your-repo>
-cd two-doc-checker
+git clone https://github.com/airparticle/Two-Doc-Checker.git
+cd Two-Doc-Checker
+```
+
+### Step 2: Create a Virtual Environment
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Mac/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+You should see `(venv)` in your terminal prompt.
+
+### Step 3: Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-2. **Configure API keys**
+**If you get errors**, try upgrading pip first:
 ```bash
-# Create .env file
-echo "LLM_API_KEY=your_openrouter_key" > .env
-echo "MISTRAL_API_KEY=your_mistral_key" >> .env  # Optional for OCR
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-3. **Run the backend**
+### Step 4: Configure API Keys
+
+Create a `.env` file in the project root:
+
+**Windows:**
 ```bash
+copy NUL .env
+notepad .env
+```
+
+**Mac/Linux:**
+```bash
+touch .env
+nano .env
+```
+
+Add these lines to `.env`:
+```env
+LLM_API_KEY=your_openrouter_api_key_here
+MISTRAL_API_KEY=your_mistral_key_here
+```
+
+**Required:**
+- `LLM_API_KEY` - Get from [openrouter.ai](https://openrouter.ai) (free tier available)
+
+**Optional:**
+- `MISTRAL_API_KEY` - Only needed for OCR of scanned PDFs ([mistral.ai](https://mistral.ai))
+
+Save and close the file.
+
+### Step 5: Start the Backend
+
+```bash
+cd backend
 uvicorn main:app --reload
 ```
 
-4. **Open the frontend**
-```bash
-# Open index.html in your browser, or serve with:
-python -m http.server 8080
-# Then visit: http://localhost:8080
+You should see:
 ```
+INFO:     Uvicorn running on http://127.0.0.1:8000
+```
+
+Keep this terminal open!
+
+### Step 6: Open the Frontend
+
+Open a **new terminal** and run:
+
+**Option A - Simple (double-click):**
+- Just open `frontend/index.html` in your browser
+
+**Option B - Local server (recommended):**
+```bash
+cd frontend
+python -m http.server 8080
+```
+
+Then visit: [http://localhost:8080](http://localhost:8080)
+
+## Quick Test
+
+1. Go to http://localhost:8080
+2. Upload any two documents
+3. Click "Compare"
+4. You should see results!
+
+## Troubleshooting
+
+### "Python not found"
+- Install Python from [python.org](https://www.python.org/downloads/)
+- Make sure to check "Add Python to PATH" during installation
+- Restart your terminal after installing
+
+### "pip not found"
+```bash
+python -m ensurepip --upgrade
+```
+
+### "uvicorn not found"
+Make sure your virtual environment is activated (you should see `(venv)` in terminal):
+```bash
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
+source venv/bin/activate
+```
+
+### "Module not found" errors
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt --force-reinstall
+```
+
+### CORS errors in browser
+- Backend must be running on `http://localhost:8000`
+- Frontend should be on `http://localhost:8080` or opened directly
+- Check that both terminals are running
+
+### "Empty response from model"
+- Verify your OpenRouter API key is correct in `.env`
+- Check you have API credits at [openrouter.ai](https://openrouter.ai)
+- Try a different model by editing `.env`:
+  ```env
+  LLM_MODEL=openai/gpt-3.5-turbo
+  ```
+
+### "Couldn't read document text"
+- Ensure PDFs aren't password-protected
+- Try re-exporting the document as a new PDF
+- For scanned PDFs, add a Mistral API key for OCR
 
 ## Usage
 
 ### Web Interface
-1. Upload an invoice file
+1. Upload an invoice file (PDF, DOCX, or TXT)
 2. Upload a contract or purchase order
 3. Click "Compare"
 4. Review findings and export results
 
-### API Endpoint
+### API Usage
 
 ```bash
 curl -X POST http://localhost:8000/compare \
@@ -70,45 +193,23 @@ curl -X POST http://localhost:8000/compare \
     "label": "related",
     "explain": ["PO number matches", "Vendor names align"]
   },
-  "governing_doc_type": "po",
-  "findings": [
-    {
-      "code": "TOTAL_OVER_AUTH",
-      "type": "monetary",
-      "severity": "high",
-      "confidence": 0.9,
-      "expected": "$10,000",
-      "actual": "$12,000",
-      "a_excerpt": "Total: $12,000",
-      "b_excerpt": "Not to exceed $10,000",
-      "a_location": "page 1",
-      "b_location": "section 3.2",
-      "suggested_resolution": "Verify authorization for additional $2,000"
-    }
-  ],
-  "metadata": {
-    "ocr": "none",
-    "truncated": false
-  }
+  "findings": [...]
 }
 ```
 
 ## Discrepancy Types
 
 The system detects:
-- **Identity**: Document ID, vendor, or customer mismatches
-- **Monetary**: Overcharges, unauthorized fees, missing discounts
-- **Date**: Out-of-term invoices, billing frequency violations
-- **Policy**: Unauthorized taxes, shipping, or line items
-- **Structure**: Currency mismatches, unmet milestones
-
-Full list of codes:
-`DOC_ID_MISMATCH`, `VENDOR_MISMATCH`, `CUSTOMER_MISMATCH`, `OUT_OF_TERM`, `TOTAL_OVER_AUTH`, `LINE_NOT_IN_AUTH`, `UNIT_RATE_EXCEEDS`, `QTY_EXCEEDS`, `TAX_NOT_ALLOWED`, `SHIPPING_NOT_ALLOWED`, `DISCOUNT_MISSING`, `CURRENCY_MISMATCH`, `MILESTONE_NOT_MET`, `BILLING_FREQUENCY_VIOLATION`
+- **Identity**: `DOC_ID_MISMATCH`, `VENDOR_MISMATCH`, `CUSTOMER_MISMATCH`
+- **Monetary**: `TOTAL_OVER_AUTH`, `UNIT_RATE_EXCEEDS`, `QTY_EXCEEDS`, `DISCOUNT_MISSING`
+- **Date**: `OUT_OF_TERM`, `BILLING_FREQUENCY_VIOLATION`
+- **Policy**: `TAX_NOT_ALLOWED`, `SHIPPING_NOT_ALLOWED`, `LINE_NOT_IN_AUTH`
+- **Structure**: `CURRENCY_MISMATCH`, `MILESTONE_NOT_MET`
 
 ## Project Structure
 
 ```
-two-doc-checker/
+Two-Doc-Checker/
 ├── backend/
 │   ├── __init__.py
 │   ├── config.py          # Configuration
@@ -121,24 +222,31 @@ two-doc-checker/
 │   ├── app.js             # Client logic
 │   └── styles.css         # Styling
 ├── requirements.txt
-├── .env
+├── .env                   # Your API keys (not in git)
+├── .gitignore
 └── README.md
 ```
 
-## Configuration
+## Configuration Options
 
-Edit `.env` file:
+Edit `.env` to customize:
 
 ```env
 # Required
-LLM_API_KEY=your_openrouter_api_key
+LLM_API_KEY=your_key
 
 # Optional
-MISTRAL_API_KEY=your_mistral_api_key  # For OCR
+MISTRAL_API_KEY=your_key
 LLM_MODEL=mistralai/mistral-7b-instruct:free
 ```
 
-Available models: `mistralai/mistral-7b-instruct:free`, `anthropic/claude-3-haiku`, `openai/gpt-4-turbo`, etc.
+**Available Models:**
+- `mistralai/mistral-7b-instruct:free` (free)
+- `anthropic/claude-3-haiku` (fast, cheap)
+- `openai/gpt-3.5-turbo` (reliable)
+- `openai/gpt-4-turbo` (best quality)
+
+See all models at [openrouter.ai/models](https://openrouter.ai/models)
 
 ## Limits
 
@@ -166,11 +274,17 @@ Available models: `mistralai/mistral-7b-instruct:free`, `anthropic/claude-3-haik
 ## Development
 
 ```bash
-# Format code
-black backend/
+# Activate virtual environment
+source venv/bin/activate  # Mac/Linux
+venv\Scripts\activate     # Windows
 
 # Run with auto-reload
-uvicorn main:app --reload --port 8000
+cd backend
+uvicorn main:app --reload
+
+# Format code (optional)
+pip install black
+black backend/
 ```
 
 ## License
@@ -179,5 +293,11 @@ MIT
 
 ## Contributing
 
+Issues and PRs welcome!
 
-Issues and PRs welcome! eb1b0ffaad8242e483dbdc445215c551d9407edf
+## Support
+
+Having issues? 
+1. Check the Troubleshooting section above
+2. Open an issue on GitHub
+3. Make sure both backend and frontend are running
